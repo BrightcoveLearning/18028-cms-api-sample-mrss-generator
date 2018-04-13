@@ -34,3 +34,6 @@ fieldset {
   border: 1px #64AAB2 solid;
   border-radius: .5em;
 }
+a {
+  color: RGB(236, 157, 83);
+}
