@@ -1,35 +1,37 @@
 var BCLS = ( function (window, document) {
-    var mrssStr = '<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dcterms="http://purl.org/dc/terms/">',
+    var mrssStr = '<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:georss="http://www.georss.org/georss" xmlns:gml="http://www.opengis.net/gml" xmlns:atom="http://www.w3.org/2005/Atom">',
+    sCdata = '<![CDATA[',
+    eCdata = ']]>',
     sChannel = '<channel>',
     eChannel = '</channel>',
     sTitle = '<title>',
     eTitle = '</title>',
     sDescription = '<description>',
     eDescription = '</description>',
-    sItem = '<item xmlns:media="http://search.yahoo.com/mrss/" xmlns:dcterms="http://purl.org/dc/terms/">',
-    defaultEndDate = '2020-10-15T00:00+01:00',
-    eItemStart = '<dcterms:valid xmlns:dcterms="http://purl.org/dc/terms/">end=',
-    eItemEnd = '; scheme=W3C-DTF</dcterms:valid><dcterms:type>live-video</dcterms:type></item>',
+    sItem = '<item>',
+    eItem = '</item>',
     sLink = '<link>',
     eLink = '</link>',
     sPubDate = '<pubDate>',
     ePubDate = '</pubDate>',
+    sGuid = '<guid isPermaLink="false">',
+    eGuid = '</guid>',
     sMediaContent = '<media:content',
-    eMediaContent = '</media:content>',
+    eMediaContent = ' />',
     sMediaPlayer = '<media:player',
     eMediaPlayer = '/>',
-    sMediaDescription = '<media:description>',
-    eMediaDescription = '</media:description>',
+    sMediaDescription = '<description>',
+    eMediaDescription = '</description>',
     sMediaThumbnail = '<media:thumbnail',
     eMediaThumbnail = '/>',
-    sMediaTitle = '<media:title>',
-    eMediaTitle = '</media:title>',
+    sMediaTitle = '<title>',
+    eMediaTitle = '</title>',
     // account stuff
     account_id,
     client_id,
     client_secret,
     // api stuff
-    proxyURL = 'https://solutions.brightcove.com/bcls/bcls-proxy/doc-samples-proxy-v2.php',
+    proxyURL = 'https://solutions.brightcove.com/bcls/bcls-proxy/bcls-proxy-v2.php',
     baseURL = 'https://cms.api.brightcove.com/v1/accounts/',
     sort,
     sortDirection = "",
@@ -44,6 +46,8 @@ var BCLS = ( function (window, document) {
     client_id_input = document.getElementById('client_id'),
     client_secret_input = document.getElementById('client_secret'),
     feedTitle = document.getElementById('feedTitle'),
+    siteURL = document.getElementById('siteURL'),
+    feedURL = document.getElementById('feedURL'),
     feedDescription = document.getElementById('feedDescription'),
     numberSelect = document.getElementById('numberSelect'),
     searchStr = document.getElementById('searchStr'),
@@ -137,10 +141,11 @@ var BCLS = ( function (window, document) {
     }
 
     function addItems() {
-        var i, iMax, video, pubdate, eItem, videoURL, thumbnailURL, doThumbnail = true;
+        var i, iMax, video, pubdate, videoURL, thumbnailURL, doThumbnail = true;
         if (videosArray.length > 0) {
             iMax = videosArray.length;
             for (i = 0; i < iMax; i += 1) {
+              doThumbnail = true;
                 video = videosArray[i];
                 // video may not have a valid source
                 if (isDefined(video.source) && isDefined(video.source.src)) {
@@ -161,10 +166,15 @@ var BCLS = ( function (window, document) {
                 mrssStr += sItem;
                 mrssStr += sLink + 'https://players.brightcove.net/' + account_id + '/default_default/index.html?videoId=' + video.id + eLink;
                 mrssStr += sPubDate + pubdate + ePubDate;
-                mrssStr += sMediaContent + ' url="' + videoURL + '" fileSize="' + video.source.size + '" type="video/quicktime" medium="video" duration="' + video.duration / 1000 + '" isDefault="true" height="' + video.source.height + '" width="' + video.source.width + '">';
+                mrssStr += sGuid + video.id + eGuid;
+                mrssStr += sMediaContent + ' url="' + videoURL + '" fileSize="' + video.source.size + '" type="video/quicktime" medium="video" duration="' + video.duration / 1000 + '" isDefault="true" '
+                if (isDefined(video.source.height)) {
+                  mrssStr += 'height="' + video.source.height + '" width="' + video.source.width + '"';
+                }
+                mrssStr += eMediaContent;
                 mrssStr += sMediaPlayer + ' url="' + 'https://players.brightcove.net/' + account_id + '/default_default/index.html?videoId=' + video.id + '"' + eMediaPlayer;
                 mrssStr += sMediaTitle + video.name + eMediaTitle;
-                mrssStr += sMediaDescription + video.description + eMediaDescription;
+                mrssStr += sMediaDescription + sCdata + video.description + eCdata + eMediaDescription;
                 if (doThumbnail) {
                     mrssStr += sMediaThumbnail + ' url="' + thumbnailURL + '"';
                     if (isDefined(video.images)) {
@@ -172,12 +182,6 @@ var BCLS = ( function (window, document) {
                     } else {
                         mrssStr += eMediaThumbnail;
                     }
-                }
-                mrssStr += eMediaContent;
-                if (isDefined(video.schedule) && video.schedule.ends_at) {
-                    eItem = eItemStart + video.schedule.ends_at + eItemEnd;
-                } else {
-                    eItem = eItemStart + defaultEndDate + eItemEnd;
                 }
                 mrssStr += eItem;
             }
@@ -363,7 +367,7 @@ var BCLS = ( function (window, document) {
             search = searchStr.value;
             numVideos = getSelectedValue(numberSelect);
             // add title and description
-            mrssStr += sChannel + sTitle + feedTitle.value + eTitle + sDescription + feedDescription.value + eDescription;
+            mrssStr += sChannel + sTitle + feedTitle.value + eTitle + sDescription + feedDescription.value + eDescription + sLink + siteURL.value.replace(/&/g, '&amp;') + eLink + '<atom:link href="' + feedURL.value.replace(/&/g, '&amp;') + '" rel="self" type="application/rss+xml" />';
             // if all videos wanted, get count; otherwise get videos
             if (numVideos === 'all') {
                 // we need to get the count
