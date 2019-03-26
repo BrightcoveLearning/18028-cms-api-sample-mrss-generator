@@ -65,7 +65,7 @@ var BCLS = ( function (window, document) {
      * @return {Boolean} true if variable is defined and has a value
      */
     function isDefined(x){
-        if ( x === "" || x === null || x === undefined || x === NaN) {
+        if ( x === "" || x === null || x === undefined) {
             return false;
         }
         return true;
@@ -167,7 +167,7 @@ var BCLS = ( function (window, document) {
                 mrssStr += sLink + 'https://players.brightcove.net/' + account_id + '/default_default/index.html?videoId=' + video.id + eLink;
                 mrssStr += sPubDate + pubdate + ePubDate;
                 mrssStr += sGuid + video.id + eGuid;
-                mrssStr += sMediaContent + ' url="' + videoURL + '" fileSize="' + video.source.size + '" type="video/quicktime" medium="video" duration="' + video.duration / 1000 + '" isDefault="true" '
+                mrssStr += sMediaContent + ' url="' + videoURL + '" fileSize="' + video.source.size + '" type="video/quicktime" medium="video" duration="' + video.duration / 1000 + '" isDefault="true" ';
                 if (isDefined(video.source.height)) {
                   mrssStr += 'height="' + video.source.height + '" width="' + video.source.width + '"';
                 }
@@ -176,12 +176,7 @@ var BCLS = ( function (window, document) {
                 mrssStr += sMediaTitle + video.name + eMediaTitle;
                 mrssStr += sMediaDescription + sCdata + video.description + eCdata + eMediaDescription;
                 if (doThumbnail) {
-                    mrssStr += sMediaThumbnail + ' url="' + thumbnailURL + '"';
-                    if (isDefined(video.images)) {
-                        mrssStr += ' height="' + video.images.thumbnail.sources[0].height + '" width="' + video.images.thumbnail.sources[0].width + '"' + eMediaThumbnail;
-                    } else {
-                        mrssStr += eMediaThumbnail;
-                    }
+                    mrssStr += sMediaThumbnail + ' url="' + thumbnailURL + '" ' + eMediaThumbnail;
                 }
                 mrssStr += eItem;
             }
